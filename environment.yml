@@ -1,0 +1,9 @@
+name: myenv
+channels:
+  - defaults
+dependencies:
+  - matplotlib
+  - nltk
+  - numpy
+  - pandas
+  - scikit-learn
