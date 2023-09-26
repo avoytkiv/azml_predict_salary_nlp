@@ -120,8 +120,10 @@ class DataFeaturizer:
 
             for start in range(0, len(indices), batch_size):
                 batch = self.make_batch(data.iloc[indices[start : start + batch_size]], 
-                                        categorical_features.iloc[indices[start : start + batch_size]],
-                                        device=device)
+                                        categorical_features[start : start + batch_size, :],
+                                        device=device,
+                                        max_len=MAX_LEN,
+                                        word_dropout=0)
                 yield batch
             
             if not cycle: break
@@ -193,4 +195,29 @@ def preprocess(data_dir: str, data_type: str, device: str) -> None:
             json.dump(token_to_id, vocab_file)
 
     logger.info("Map text lines into neural network inputs")
-    data.index = rang
+    data.index = range(len(data))
+
+    featurizer = DataFeaturizer(vocab_path, device, categorical_features)
+
+    for idx, minibatch in enumerate(featurizer.iterate_minibatches(data, categorical_features, batch_size=BATCH_SIZE, shuffle=True, device=device)):
+        filename = os.path.join(BATCHES_DIR, f"batch_{idx}.pt")
+        torch.save(minibatch, filename)
+    logger.info("Saved %s batches to %s", idx + 1, BATCHES_DIR)
+        
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data_dir", dest="data_dir", default=DATA_DIR)
+    parser.add_argument("--data_type", dest="data_type", default="train")
+    args = parser.parse_args()
+    logging.info("input parameters: %s", vars(args))
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    preprocess(**vars(args), device=device)
+
+
+if __name__ == "__main__":
+    main()
+

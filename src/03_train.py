@@ -3,6 +3,7 @@ import argparse
 import logging
 from pathlib import Path
 
+import tqdm
 import os
 import mlflow
 import torch
@@ -44,7 +45,7 @@ def train(data_dir: str, data_type: str, model_dir: str, device: str, epochs=EPO
     train_loader = BatchLoader(os.path.join(data_dir, src_path / Path(data_dir) / "batches_train"))
     val_loader = BatchLoader(os.path.join(data_dir, src_path / Path(data_dir) / "batches_validation"))
     
-    n_tokens, n_cat_features = extract_feature_sizes(src_path / Path(data_dir) / "batches_train")
+    n_tokens, n_cat_features = 27449, 35# extract_feature_sizes(src_path / Path(data_dir) / "batches_train")
     logger.info(f"n_tokens: {n_tokens}, n_cat_features: {n_cat_features}")
     model = SalaryPredictor(n_tokens=n_tokens, n_cat_features=n_cat_features).to(device)
     criterion = nn.MSELoss(reduction='sum')
@@ -65,8 +66,8 @@ def train(data_dir: str, data_type: str, model_dir: str, device: str, epochs=EPO
             optimizer.step()
             train_loss += loss.item()
         
-        train_loss /= len(train_loader.dataset)
-        train_losses.append(train_loss)
+        train_loss= train_loss / len(train_loader)
+        train_losses.append(train_loss) 
 
         model.eval()
         val_loss = 0.0
@@ -76,7 +77,7 @@ def train(data_dir: str, data_type: str, model_dir: str, device: str, epochs=EPO
                 loss = criterion(pred, batch[TARGET_COLUMN])
                 val_loss += loss.item()
 
-        val_loss /= len(val_loader.dataset)
+        val_loss /= len(val_loader)
         val_losses.append(val_loss)
 
         # Log Metrics with MLflow
@@ -92,7 +93,7 @@ def train(data_dir: str, data_type: str, model_dir: str, device: str, epochs=EPO
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig(Path(model_dir, "losses.png"))
+    plt.savefig("losses.png")
 
     logger.info("Saving model")
 

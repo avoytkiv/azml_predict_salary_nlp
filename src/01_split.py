@@ -15,9 +15,9 @@ from src.utils.logs import get_logger
 def split_data(data_dir: str) -> None:
     logger = get_logger("DATA SPLIT", log_level="INFO")
 
-    data_path = src_path / Path(data_dir) / "Train_rev1.zip"
+    data_path = src_path / Path(data_dir) / "Train_rev1.csv"
     logger.info("Loading data from %s", data_dir)
-    data = pd.read_csv(data_path, compression='zip', index_col=None)
+    data = pd.read_csv(data_path, index_col=None)
 
     logger.info("Split data into train and validation sets")
     train_data, test_data = train_test_split(data, test_size=0.2, random_state=RANDOM_STATE)

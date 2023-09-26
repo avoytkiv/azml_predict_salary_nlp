@@ -9,3 +9,4 @@ dependencies:
   - scikit-learn
   - pytorch=2.0.1
   - mlflow=2.6.0
+  - tqdm
