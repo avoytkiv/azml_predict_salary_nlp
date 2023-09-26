@@ -34,10 +34,10 @@ def preprocess_text(text: str) -> List[str]:
 
 def categorical_vectorizer_func(data : pd.DataFrame):
         """ This function takes a dataframe and returns a vectorizer for categorical features"""
-        top_companies, top_counts = zip(*Counter(data['Company']).most_common(1000))
-        recognized_companies = set(top_companies)
-        mask = ~data['Company'].isin(recognized_companies)
-        data.loc[mask, 'Company'] = 'Other'
+        # top_companies, top_counts = zip(*Counter(data['Company']).most_common(100))
+        # recognized_companies = set(top_companies)
+        # mask = ~data['Company'].isin(recognized_companies)
+        # data.loc[mask, 'Company'] = 'Other'
         categorical_vectorizer = DictVectorizer(dtype=np.float32, sparse=False)
         categorical_vectorizer.fit(data[CATEGORICAL_COLUMNS].apply(dict, axis=1))
 
@@ -83,7 +83,7 @@ class DataFeaturizer:
                 batch_tensors[key] = torch.tensor(arr, device=device)
         return batch_tensors
 
-    def make_batch(self, data, device, max_len=MAX_LEN, word_dropout=0):
+    def make_batch(self, data, categorical_features, device, max_len=MAX_LEN, word_dropout=0):
         """
         Creates a keras-friendly dict from the batch data.
         :param word_dropout: replaces token index with UNK_IX with this probability
@@ -92,7 +92,7 @@ class DataFeaturizer:
         batch = {}
         batch["Title"] = self.as_matrix(data["Title"].values, max_len)
         batch["FullDescription"] = self.as_matrix(data["FullDescription"].values, max_len)
-        batch['Categorical'] = self.categorical_features
+        batch['Categorical'] = categorical_features
         
         if word_dropout != 0:
             batch["FullDescription"] = self.apply_word_dropout(batch["FullDescription"], 1. - word_dropout)
@@ -111,7 +111,7 @@ class DataFeaturizer:
         return np.choose(dropout_mask, [matrix, np.full_like(matrix, UNK_IX)])
 
 
-    def iterate_minibatches(self, data, batch_size=256, shuffle=True, cycle=False, device=None):
+    def iterate_minibatches(self, data, categorical_features, batch_size=256, shuffle=True, cycle=False, device=None):
         """ iterates minibatches of data in random order """
         while True:
             indices = np.arange(len(data))
@@ -119,7 +119,9 @@ class DataFeaturizer:
                 indices = np.random.permutation(indices)
 
             for start in range(0, len(indices), batch_size):
-                batch = self.make_batch(data.iloc[indices[start : start + batch_size]], device=device)
+                batch = self.make_batch(data.iloc[indices[start : start + batch_size]], 
+                                        categorical_features.iloc[indices[start : start + batch_size]],
+                                        device=device)
                 yield batch
             
             if not cycle: break
@@ -191,29 +193,4 @@ def preprocess(data_dir: str, data_type: str, device: str) -> None:
             json.dump(token_to_id, vocab_file)
 
     logger.info("Map text lines into neural network inputs")
-    data.index = range(len(data))
-
-    featurizer = DataFeaturizer(vocab_path, device, categorical_features)
-
-    for idx, minibatch in enumerate(featurizer.iterate_minibatches(data, batch_size=BATCH_SIZE, shuffle=True, device=device)):
-        filename = os.path.join(BATCHES_DIR, f"batch_{idx}.pt")
-        torch.save(minibatch, filename)
-    logger.info("Saved %s batches to %s", idx + 1, BATCHES_DIR)
-        
-
-def main() -> None:
-    logging.basicConfig(level=logging.INFO)
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir", dest="data_dir", default=DATA_DIR)
-    parser.add_argument("--data_type", dest="data_type", default="train")
-    args = parser.parse_args()
-    logging.info("input parameters: %s", vars(args))
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    preprocess(**vars(args), device=device)
-
-
-if __name__ == "__main__":
-    main()
-
+    data.index = rang

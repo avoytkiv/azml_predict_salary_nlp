@@ -1,7 +1,7 @@
 """Common code and variables."""
 
 TARGET_COLUMN = "Log1pSalary"
-CATEGORICAL_COLUMNS = ["Category", "Company", "LocationNormalized", "ContractType", "ContractTime"]
+CATEGORICAL_COLUMNS = ["Category", "ContractType", "ContractTime"]
 DATA_DIR = "data/"
 MODEL_DIR = "model/"
 RANDOM_STATE = 42
