@@ -11,6 +11,29 @@ src_path = Path(__file__).parent.parent.parent.resolve()
 sys.path.append(str(src_path))
 
 
+def extract_feature_sizes(batch_dir: str) -> tuple[int, int]:
+    """
+    Extracts the feature sizes from saved batches.
+    
+    :param batch_dir: The directory containing the saved batches.
+    :return: A tuple containing the sizes of tokens and categorical features.
+    """
+    n_tokens_set = set()
+    n_cat_features_set = set()
+
+    # Loop over all batch files in the specified directory
+    for batch_file in os.listdir(batch_dir):
+        if batch_file.endswith('.pt'):
+            batch_path = os.path.join(batch_dir, batch_file)
+            batch = torch.load(batch_path)
+            
+            # Extract and update the token and categorical feature sets
+            n_tokens_set.update(batch['Title'].flatten().tolist(), batch['FullDescription'].flatten().tolist())
+            n_cat_features_set.update(batch['Categorical'].flatten().tolist())
+    
+    # Return the sizes of the unique tokens and categorical features
+    return len(n_tokens_set), len(n_cat_features_set)
+
 class BatchLoader:
     def __init__(self, data_dir: str):
         self.data_dir = data_dir

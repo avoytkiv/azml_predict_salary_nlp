@@ -23,6 +23,7 @@ from common import DATA_DIR, TARGET_COLUMN, CATEGORICAL_COLUMNS, MAX_LEN, BATCH_
 from src.utils.logs import get_logger
 
 def preprocess_text(text: str) -> List[str]:
+    """ This function takes a text and returns a list of tokens"""
     stop_words = set(stopwords.words('english'))
     lemmatizer = WordNetLemmatizer()
 
@@ -31,16 +32,7 @@ def preprocess_text(text: str) -> List[str]:
     tokens = [lemmatizer.lemmatize(t) for t in tokens]
     return ' '.join(tokens)
 
-class DataFeaturizer:
-    def __init__(self, vocab_path, device):
-        self.vocab = self.load_vocab(vocab_path)
-        self.device = device
-        
-    def load_vocab(self, vocab_path):
-        with open(vocab_path, "r") as f:
-            return json.load(f)
-    
-    def categorical_vectorizer(self, data : pd.DataFrame):
+def categorical_vectorizer_func(data : pd.DataFrame):
         """ This function takes a dataframe and returns a vectorizer for categorical features"""
         top_companies, top_counts = zip(*Counter(data['Company']).most_common(1000))
         recognized_companies = set(top_companies)
@@ -50,6 +42,16 @@ class DataFeaturizer:
         categorical_vectorizer.fit(data[CATEGORICAL_COLUMNS].apply(dict, axis=1))
 
         return categorical_vectorizer
+
+class DataFeaturizer:
+    def __init__(self, vocab_path, device, categorical_features):
+        self.vocab = self.load_vocab(vocab_path)
+        self.device = device
+        self.categorical_features = categorical_features
+        
+    def load_vocab(self, vocab_path):
+        with open(vocab_path, "r") as f:
+            return json.load(f)
 
     def as_matrix(self, sequences, max_len=None):
         """ Convert a list of tokens into a matrix with padding """
@@ -90,7 +92,7 @@ class DataFeaturizer:
         batch = {}
         batch["Title"] = self.as_matrix(data["Title"].values, max_len)
         batch["FullDescription"] = self.as_matrix(data["FullDescription"].values, max_len)
-        batch['Categorical'] = self.categorical_vectorizer(data).transform(data[CATEGORICAL_COLUMNS].apply(dict, axis=1))
+        batch['Categorical'] = self.categorical_features
         
         if word_dropout != 0:
             batch["FullDescription"] = self.apply_word_dropout(batch["FullDescription"], 1. - word_dropout)
@@ -141,8 +143,7 @@ def preprocess(data_dir: str, data_type: str, device: str) -> None:
     logger.info("Tranforming data")
     data['Log1pSalary'] = np.log1p(data['SalaryNormalized']).astype('float32')
     
-    categorical_columns = ["Category", "Company", "LocationNormalized", "ContractType", "ContractTime"]
-    data[categorical_columns] = data[categorical_columns].fillna('NaN')
+    data[CATEGORICAL_COLUMNS] = data[CATEGORICAL_COLUMNS].fillna('NaN')
 
     logger.info("How many missing values are there in 'FullDescription' and 'Title' columns")
     logger.info(data["FullDescription"].isnull().sum())
@@ -156,6 +157,11 @@ def preprocess(data_dir: str, data_type: str, device: str) -> None:
     nltk.download('wordnet')
     data['Title'] = data['Title'].apply(preprocess_text)
     data['FullDescription'] = data['FullDescription'].apply(preprocess_text)
+
+    logger.info("Category column is a categorical feature")
+    categorical_vectorizer = categorical_vectorizer_func(data)
+    categorical_features = categorical_vectorizer.transform(data[CATEGORICAL_COLUMNS].apply(dict, axis=1))
+    logger.info("Number of categorical features %s", len(categorical_vectorizer.vocabulary_))
 
     if data_type == "train":
         logger.info("Build a vocabulary on train data")
@@ -187,7 +193,7 @@ def preprocess(data_dir: str, data_type: str, device: str) -> None:
     logger.info("Map text lines into neural network inputs")
     data.index = range(len(data))
 
-    featurizer = DataFeaturizer(vocab_path, device)
+    featurizer = DataFeaturizer(vocab_path, device, categorical_features)
 
     for idx, minibatch in enumerate(featurizer.iterate_minibatches(data, batch_size=BATCH_SIZE, shuffle=True, device=device)):
         filename = os.path.join(BATCHES_DIR, f"batch_{idx}.pt")

@@ -15,7 +15,7 @@ sys.path.append(str(src_path))
 
 from common import DATA_DIR, MODEL_DIR, TARGET_COLUMN, BATCH_SIZE, EPOCHS
 from src.utils.logs import get_logger
-from src.utils.train_utils import SalaryPredictor, BatchLoader
+from src.utils.train_utils import SalaryPredictor, BatchLoader, extract_feature_sizes
 
 
 # def save_model(model_dir: str, model: nn.Module) -> None:
@@ -38,13 +38,15 @@ from src.utils.train_utils import SalaryPredictor, BatchLoader
 #                               code_paths=full_code_paths,
 #                               signature=signature)
 
-def train(data_dir: str, model_dir: str, device: str, epochs=EPOCHS, batch_size=BATCH_SIZE) -> None:
+def train(data_dir: str, data_type: str, model_dir: str, device: str, epochs=EPOCHS) -> None:
     logger = get_logger("TRAIN", log_level="INFO")
     
-    train_loader = BatchLoader(os.path.join(data_dir, "train_batches"))
-    val_loader = BatchLoader(os.path.join(data_dir, "val_batches"))
+    train_loader = BatchLoader(os.path.join(data_dir, src_path / Path(data_dir) / "batches_train"))
+    val_loader = BatchLoader(os.path.join(data_dir, src_path / Path(data_dir) / "batches_validation"))
     
-    model = SalaryPredictor().to(device)
+    n_tokens, n_cat_features = extract_feature_sizes(src_path / Path(data_dir) / "batches_train")
+    logger.info(f"n_tokens: {n_tokens}, n_cat_features: {n_cat_features}")
+    model = SalaryPredictor(n_tokens=n_tokens, n_cat_features=n_cat_features).to(device)
     criterion = nn.MSELoss(reduction='sum')
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-4)
 
@@ -100,6 +102,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_dir", dest="data_dir", default=DATA_DIR)
+    parser.add_argument("--data_type", dest="data_type", default="train")
     parser.add_argument("--model_dir", dest="model_dir", default=MODEL_DIR)
     args = parser.parse_args()
     logging.info("input parameters: %s", vars(args))
