@@ -6,6 +6,9 @@
 		"context": "..",
 		"dockerfile": "Dockerfile"
 	},
+	"features": {
+		"ghcr.io/devcontainers/features/azure-cli:1": "latest"
+	},
 	// Set *default* container specific settings.json values on container create.
     "customizations": {
         "vscode": {
@@ -13,11 +16,13 @@
                 "python.defaultInterpreterPath": "/opt/conda/bin/python"
             },
             "extensions": [
-                "ms-python.python",
-		        "ms-python.vscode-pylance",
-                "ms-toolsai.jupyter",
-				"GitHub.copilot"
-            ]
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-toolsai.jupyter",
+				"GitHub.copilot",
+				"ms-toolsai.vscode-ai-remote",
+				"ms-toolsai.vscode-ai"
+			]
         }
     }
 }

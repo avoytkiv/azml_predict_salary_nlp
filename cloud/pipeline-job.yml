@@ -1,0 +1,47 @@
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+experiment_name: aml_pipeline_cli
+
+compute: azureml:cluster-cpu
+
+inputs:
+  data_dir:
+    path: azureml:Train-Data@latest
+    type: uri_folder
+
+outputs:
+  model_dir:
+    type: mlflow_model
+
+jobs:
+  split:
+    type: command
+    component: azureml:component_pipeline_cli_split@latest
+    inputs:
+      data_dir: ${{inputs.data_dir}}
+    outputs:
+      train_dir: ${{job.outputs.train_dir}}
+      test_dir: ${{job.outputs.test_dir}}
+
+  # preprocess:
+  #   type: command
+  #   component: azureml:component_pipeline_cli_preprocess@latest
+  #   inputs:
+  #     data_dir: ${{parent.jobs.split.outputs.train_dir}}
+  #   outputs:
+  #     data_dir: ${{job.outputs.data_dir}}
+      
+  # train:
+  #   type: command
+  #   component: azureml:component_pipeline_cli_train@latest
+  #   inputs:
+  #     data_dir: ${{parent.inputs.data_dir}}
+  #   outputs:
+  #     model_dir: ${{parent.outputs.model_dir}}
+
+  # test:
+  #   type: command
+  #   component: azureml:component_pipeline_cli_test@latest
+  #   inputs:
+  #     data_dir: ${{parent.inputs.data_dir}}
+  #     model_dir: ${{parent.jobs.train.outputs.model_dir}}

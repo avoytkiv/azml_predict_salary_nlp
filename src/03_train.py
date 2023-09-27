@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 src_path = Path(__file__).parent.parent.resolve()
 sys.path.append(str(src_path))
 
-from common import DATA_DIR, MODEL_DIR, PLOTS_DIR, TARGET_COLUMN, EPOCHS
+from common import DATA_DIR, MODEL_DIR, TARGET_COLUMN, EPOCHS
 from src.utils.logs import get_logger
 from src.utils.train_utils import SalaryPredictor, BatchLoader, extract_feature_sizes, evaluate
 
@@ -39,11 +39,10 @@ from src.utils.train_utils import SalaryPredictor, BatchLoader, extract_feature_
 #                               code_paths=full_code_paths,
 #                               signature=signature)
 
-def train(data_dir: str,  model_dir: str, plots_dir: str, device: str, epochs=EPOCHS) -> None:
+def train(data_dir: str,  model_dir: str, device: str, epochs=EPOCHS) -> None:
     logger = get_logger("TRAIN", log_level="INFO")
 
     data_dir = src_path / Path(data_dir)
-    plots_dir = src_path / Path(plots_dir)
     model_dir = src_path / Path(model_dir)
     configs_dir = src_path / Path("configs")
     
@@ -102,10 +101,7 @@ def train(data_dir: str,  model_dir: str, plots_dir: str, device: str, epochs=EP
         shutil.rmtree(model_dir, ignore_errors=True)
         logger.info("Saving model to %s", model_dir)
         mlflow.pytorch.save_model(pytorch_model=model, path=model_dir)
-        
-        # shutil.rmtree(plots_dir, ignore_errors=True)
-        logger.info("Saving plots to %s", plots_dir)
-        mlflow.log_artifact(plot_name)
+
         run_id = run.info.run_id
     
     with open(configs_dir / Path("run_id.txt"), "w") as file:
@@ -118,7 +114,6 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_dir", dest="data_dir", default=DATA_DIR)
     parser.add_argument("--model_dir", dest="model_dir", default=MODEL_DIR)
-    parser.add_argument("--plots_dir", dest="plots_dir", default=PLOTS_DIR)
     args = parser.parse_args()
     logging.info("input parameters: %s", vars(args))
 

@@ -1,0 +1,20 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
+name: component_pipeline_cli_train
+version: 3
+type: command
+
+inputs:
+  data_dir:
+    type: uri_folder
+
+outputs:
+  model_dir:
+    type: uri_folder
+
+environment:
+  image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
+  conda_file: conda.yml
+
+code: ../src
+command: >-
+  python 02_preprocess.py --data_dir ${{inputs.data_dir}} --model_dir ${{outputs.model_dir}} 
