@@ -3,7 +3,7 @@ import argparse
 import logging
 from pathlib import Path
 
-import tqdm
+import shutil
 import os
 import mlflow
 import torch
@@ -14,9 +14,9 @@ import matplotlib.pyplot as plt
 src_path = Path(__file__).parent.parent.resolve()
 sys.path.append(str(src_path))
 
-from common import DATA_DIR, MODEL_DIR, TARGET_COLUMN, BATCH_SIZE, EPOCHS
+from common import DATA_DIR, MODEL_DIR, PLOTS_DIR, TARGET_COLUMN, EPOCHS
 from src.utils.logs import get_logger
-from src.utils.train_utils import SalaryPredictor, BatchLoader, extract_feature_sizes
+from src.utils.train_utils import SalaryPredictor, BatchLoader, extract_feature_sizes, evaluate
 
 
 # def save_model(model_dir: str, model: nn.Module) -> None:
@@ -39,11 +39,16 @@ from src.utils.train_utils import SalaryPredictor, BatchLoader, extract_feature_
 #                               code_paths=full_code_paths,
 #                               signature=signature)
 
-def train(data_dir: str, data_type: str, model_dir: str, device: str, epochs=EPOCHS) -> None:
+def train(data_dir: str,  model_dir: str, plots_dir: str, device: str, epochs=EPOCHS) -> None:
     logger = get_logger("TRAIN", log_level="INFO")
+
+    data_dir = src_path / Path(data_dir)
+    plots_dir = src_path / Path(plots_dir)
+    model_dir = src_path / Path(model_dir)
+    configs_dir = src_path / Path("configs")
     
-    train_loader = BatchLoader(os.path.join(data_dir, src_path / Path(data_dir) / "batches_train"))
-    val_loader = BatchLoader(os.path.join(data_dir, src_path / Path(data_dir) / "batches_validation"))
+    train_loader = BatchLoader(os.path.join(data_dir / "batches_train"))
+    val_loader = BatchLoader(os.path.join(data_dir / "batches_validation"))
     
     n_tokens, n_cat_features = 27449, 35# extract_feature_sizes(src_path / Path(data_dir) / "batches_train")
     logger.info(f"n_tokens: {n_tokens}, n_cat_features: {n_cat_features}")
@@ -55,7 +60,8 @@ def train(data_dir: str, data_type: str, model_dir: str, device: str, epochs=EPO
     val_losses = []
 
     for epoch in range(epochs):
-        logger.info("Epoch %s/%s", epoch + 1, epochs)
+        train_loader.reset()
+        val_loader.reset()  
         model.train()
         train_loss = 0.0
         for batch in train_loader:
@@ -65,19 +71,12 @@ def train(data_dir: str, data_type: str, model_dir: str, device: str, epochs=EPO
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
+            # logger.info(f"Train loss: {loss.item()}")
         
         train_loss= train_loss / len(train_loader)
         train_losses.append(train_loss) 
 
-        model.eval()
-        val_loss = 0.0
-        with torch.no_grad():
-            for batch in val_loader:
-                pred = model(batch)
-                loss = criterion(pred, batch[TARGET_COLUMN])
-                val_loss += loss.item()
-
-        val_loss /= len(val_loader)
+        val_loss = evaluate(model, val_loader, criterion, device)
         val_losses.append(val_loss)
 
         # Log Metrics with MLflow
@@ -86,16 +85,31 @@ def train(data_dir: str, data_type: str, model_dir: str, device: str, epochs=EPO
 
         logger.info(f"Epoch {epoch + 1}/{epochs} | Train Loss: {train_loss:.4f} | Validation Loss: {val_loss:.4f}")
 
-
+    
+    
     logger.info("Plotting losses")
     plt.plot(train_losses, label='Train Loss')
     plt.plot(val_losses, label='Validation Loss')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig("losses.png")
+    plot_name = plots_dir / Path("losses.png")
+    plt.savefig(plot_name)
 
-    logger.info("Saving model")
+    mlflow.end_run()
+    with mlflow.start_run() as run:
+
+        shutil.rmtree(model_dir, ignore_errors=True)
+        logger.info("Saving model to %s", model_dir)
+        mlflow.pytorch.save_model(pytorch_model=model, path=model_dir)
+        
+        # shutil.rmtree(plots_dir, ignore_errors=True)
+        logger.info("Saving plots to %s", plots_dir)
+        mlflow.log_artifact(plot_name)
+        run_id = run.info.run_id
+    
+    with open(configs_dir / Path("run_id.txt"), "w") as file:
+        file.write(run_id)
 
 
 def main() -> None:
@@ -103,8 +117,8 @@ def main() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_dir", dest="data_dir", default=DATA_DIR)
-    parser.add_argument("--data_type", dest="data_type", default="train")
     parser.add_argument("--model_dir", dest="model_dir", default=MODEL_DIR)
+    parser.add_argument("--plots_dir", dest="plots_dir", default=PLOTS_DIR)
     args = parser.parse_args()
     logging.info("input parameters: %s", vars(args))
 

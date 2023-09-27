@@ -6,9 +6,13 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 src_path = Path(__file__).parent.parent.parent.resolve()
 sys.path.append(str(src_path))
+
+from common import TARGET_COLUMN
+from src.utils.logs import get_logger
 
 
 def extract_feature_sizes(batch_dir: str) -> tuple[int, int]:
@@ -52,6 +56,9 @@ class BatchLoader:
     
     def __len__(self):
         return len(self.batch_files)
+    
+    def reset(self):
+        self.index = 0
 
 
 class SalaryPredictor(nn.Module):
@@ -92,28 +99,40 @@ class SalaryPredictor(nn.Module):
 
         return out.squeeze(-1)  # remove the last dimension
     
-def evaluate():
+def evaluate(model, val_loader, criterion, device):
     """
     Evaluates the given model for the whole dataset once.
     """
-    train_losses = []
-    val_losses = []
+    assert len(val_loader) > 0, "Validation loader is empty!"
+    model.eval()  
+    val_loss = 0.0
+    with torch.no_grad():  
+        for batch in val_loader:
+            for key in batch:
+                if isinstance(batch[key], torch.Tensor):
+                    batch[key] = batch[key].to(device)
+                    
+            pred = model(batch)
+            loss = criterion(pred, batch[TARGET_COLUMN])
+            val_loss += loss.item()
+            
+    val_loss /= len(val_loader)  
+    return val_loss
 
-    model.to(device)
-    model.eval()
-
+def eval_test(model, val_loader):
+    """ 
+    Let's make a prediction for all the validation data and plot the predictions against the true values
+    The predictions are in log-scale, so we need to apply expm1 to them to get the actual salary values
+    """
+    
+    val_preds = []
+    val_targets = []
     with torch.no_grad():
-        for (x, y) in dataloader:
-            x = x.float().to(device)
-            y = y.long().to(device)
+        for batch in val_loader:
+            pred = model(batch)
+            val_preds.extend(pred)
+            val_targets.extend(batch[TARGET_COLUMN])
 
-            (y_prime, loss) = _evaluate_one_batch(x, y, model, loss_fn)
-
-            correct_item_count += (y_prime.argmax(1) == y).sum().item()
-            loss_sum += loss.item()
-            item_count += len(x)
-
-        average_loss = loss_sum / item_count
-        accuracy = correct_item_count / item_count
-
-    return (average_loss, accuracy)
+    val_preds = np.expm1(val_preds)
+    val_targets = np.expm1(val_targets)
+    return val_preds, val_targets

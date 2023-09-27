@@ -89,3 +89,6 @@ target/
 # Exclude data
 data/
 mlruns/
+model/
+configs/
+plots/

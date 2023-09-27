@@ -1,47 +1,57 @@
 import sys
 import argparse
 import logging
-import shutil
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
 
+import shutil
+import os
 import mlflow
 import torch
 from torch import nn
-import numpy as np
-import pandas as pd
-from sklearn.metrics import mean_squared_error
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import WordPunctTokenizer
-from nltk.stem import WordNetLemmatizer
-from collections import Counter
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
 
-src_path = Path(__file__).parent.parent.parent.resolve()
+src_path = Path(__file__).parent.parent.resolve()
 sys.path.append(str(src_path))
 
+from common import DATA_DIR, MODEL_DIR, PLOTS_DIR
 from src.utils.logs import get_logger
-from src.utils.train_utils import SalaryPredictor
+from src.utils.train_utils import BatchLoader, eval_test
 
-def load_test_data(data_dir: str) -> pd.DataFrame:
-    pass
 
-def test():
-    """
-    Tests the model on test data.
-    """
-    batch_size = 64
-    loss_fn = nn.MSELoss(reduction='sum')
-    optimizer = torch.optim.SGD(model.parameters(), lr=1e-4)
-    model = mlflow.pytorch.load_model(model_uri=model_dir)
+def test(data_dir: str,  model_dir: str, plots_dir: str) -> None:
+    logger = get_logger("TEST", log_level="INFO")
+    
+    model_dir = src_path / Path(model_dir)
+    plots_dir = src_path / Path(plots_dir)
+    configs_dir = src_path / Path("configs")
+    # Load the model
+    model = torch.load(model_dir / "data/model.pth")
+    test_loader = BatchLoader(os.path.join(data_dir, src_path / Path(data_dir) / "batches_validation"))
+    
+    test_loader.reset() 
+    val_preds, val_targets = eval_test(model, test_loader)
 
-    (test_loss, test_accuracy) = evaluate(device, test_dataloader, model,
-                                          loss_fn)
+    logger.info("Plotting predictions")
+    plt.scatter(val_targets, val_preds, alpha=0.1)
+    plt.xlabel("True salary")
+    plt.ylabel("Predicted salary")
+    plt.plot([0, 100000], [0, 100000], color='red', linestyle='--')
+    plt.xlim([0, 100000])
+    plt.ylim([0, 100000])
 
-    mlflow.log_param("test_loss", test_loss)
-    mlflow.log_param("test_accuracy", test_accuracy)
-    logging.info("Test loss: %f", test_loss)
-    logging.info("Test accuracy: %f", test_accuracy)
+    plot_name = plots_dir / Path("predictions.png")
+    plt.savefig(plot_name)
+
+    with open(configs_dir / Path("run_id.txt"), "r") as file:
+        run_id = file.read().strip()
+
+    with mlflow.start_run(run_id=run_id):
+
+        # shutil.rmtree(plots_dir, ignore_errors=True)
+        logger.info("Logging plots")
+        mlflow.log_artifact(plot_name)
+
 
 
 def main() -> None:
@@ -50,12 +60,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_dir", dest="data_dir", default=DATA_DIR)
     parser.add_argument("--model_dir", dest="model_dir", default=MODEL_DIR)
+    parser.add_argument("--plots_dir", dest="plots_dir", default=PLOTS_DIR)
     args = parser.parse_args()
     logging.info("input parameters: %s", vars(args))
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    test(**vars(args), device=device)
+    test(**vars(args))
 
 
 if __name__ == "__main__":

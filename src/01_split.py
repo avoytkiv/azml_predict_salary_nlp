@@ -19,12 +19,15 @@ def split_data(data_dir: str) -> None:
     logger.info("Loading data from %s", data_dir)
     data = pd.read_csv(data_path, index_col=None)
 
-    logger.info("Split data into train and validation sets")
+    logger.info("Split data into train, validation and test sets in a 80/10/10 ratio")
     train_data, test_data = train_test_split(data, test_size=0.2, random_state=RANDOM_STATE)
+    test_data, val_data = train_test_split(test_data, test_size=0.5, random_state=RANDOM_STATE)
+    
 
     logger.info("Save train and test sets")
     train_data.to_csv(src_path / Path(data_dir) / "train.csv", index=False)
-    test_data.to_csv(src_path / Path(data_dir) / "validation.csv", index=False)
+    val_data.to_csv(src_path / Path(data_dir) / "validation.csv", index=False)
+    test_data.to_csv(src_path / Path(data_dir) / "test.csv", index=False)
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
