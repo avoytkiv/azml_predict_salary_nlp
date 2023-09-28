@@ -73,5 +73,49 @@ Clean up the endpoint, to avoid getting charged.
 az ml online-endpoint delete --name endpoint-pipeline-cli -y
 ```
 
+Useful commands:
+
+```bash
+az version
+
+# Output:
+{
+  "azure-cli": "2.53.0",
+  "azure-cli-core": "2.53.0",
+  "azure-cli-telemetry": "1.1.0",
+  "extensions": {}
+}
+```
+
+If ML extension is not installed:
+
+```bash 
+az extension add -n ml
+
+# Output:
+
+{
+  "azure-cli": "2.53.0",
+  "azure-cli-core": "2.53.0",
+  "azure-cli-telemetry": "1.1.0",
+  "extensions": 
+  {
+    "ml": "2.20.0"
+  }
+}
+```
+
+Run the help command to verify your installation and see available subcommands:
+
+```bash
+az ml -h
+```
+
+## References
+
+- [Azure ML CLI - Manage inputs and outputs of pipeline](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-manage-inputs-outputs-pipeline?view=azureml-api-2&tabs=cli)
+- [Azure GitHub - CLI - jobs](https://github.com/Azure/azureml-examples/tree/main/cli/jobs)
+
+
 
 

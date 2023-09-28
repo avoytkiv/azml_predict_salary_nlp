@@ -6,14 +6,18 @@ from pathlib import Path
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-src_path = Path(__file__).parent.parent.resolve()
-sys.path.append(str(src_path))
+# src_path = Path(__file__).parent.resolve()
+# sys.path.append(str(src_path))
 
 from common import DATA_DIR, PROCESSED_DATA_DIR, RANDOM_STATE
-from src.utils.logs import get_logger
+from utils.logs import get_logger
 
 def split_data(data_dir: str, processed_data_dir: str) -> None:
     logger = get_logger("DATA SPLIT", log_level="INFO")
+    logger.info("Print current working directory: %s", Path.cwd())
+    # Go one level up to the root of the project
+    src_path = Path.cwd().parent
+    logger.info("Print source path: %s", src_path)
 
     raw_data_path = src_path / Path(data_dir) / "Train_rev1.csv.tar.gz"
     processed_data_path = src_path / Path(processed_data_dir)
@@ -25,7 +29,7 @@ def split_data(data_dir: str, processed_data_dir: str) -> None:
     test_data, val_data = train_test_split(test_data, test_size=0.5, random_state=RANDOM_STATE)
     
 
-    logger.info("Save train and test sets")
+    logger.info("Save train, validation and test sets")
     train_data.to_csv(processed_data_path / "train.csv", index=False)
     val_data.to_csv(processed_data_path / "validation.csv", index=False)
     test_data.to_csv(processed_data_path / "test.csv", index=False)

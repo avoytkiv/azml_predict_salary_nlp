@@ -9,4 +9,4 @@ COPY environment.yml /tmp/conda-tmp/
 RUN /opt/conda/bin/conda env create -n myenv -f /tmp/conda-tmp/environment.yml && rm -rf /tmp/conda-tmp
 
 # Activate the new conda environment by default when the container starts
-RUN echo "source activate myenv" >> ~/.zshhrc
+RUN echo "conda activate myenv" >> ~/.zshhrc

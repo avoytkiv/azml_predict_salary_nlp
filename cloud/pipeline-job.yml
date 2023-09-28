@@ -1,8 +1,8 @@
 $schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
 type: pipeline
-experiment_name: aml_pipeline_cli
+experiment_name: job-salary-prediction
+description: A pipeline job to split-preprocess-train-test 
 
-compute: azureml:cluster-cpu
 
 inputs:
   data_dir:
@@ -12,8 +12,13 @@ inputs:
 outputs:
   model_dir:
     type: mlflow_model
-  processed_data_dir:
-    type: uri_folder
+  pipeline_job_split_data:
+    mode: upload
+
+
+settings:
+    default_compute: azureml:cluster-cpu
+
 
 jobs:
   split:
