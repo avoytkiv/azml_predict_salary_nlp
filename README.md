@@ -29,7 +29,7 @@ NOTE: For file more than 100MB, compress or use `azcopy`
 
 Create the components:
 
-```
+```bash
 az ml component create -f cloud/01_split.yml
 az ml component create -f cloud/02_preprocess.yml
 az ml component create -f cloud/03_train.yml
@@ -50,7 +50,7 @@ az ml job download --name $run_id --output-name "model_dir"
 
 Create the Azure ML model from the output.
 
-```
+```bash
 az ml model create --name model-pipeline-cli --version 1 --path "azureml://jobs/$run_id/outputs/model_dir" --type mlflow_model
 ```
 
