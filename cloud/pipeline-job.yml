@@ -12,16 +12,17 @@ inputs:
 outputs:
   model_dir:
     type: mlflow_model
+  processed_data_dir:
+    type: uri_folder
 
 jobs:
   split:
     type: command
     component: azureml:component_pipeline_cli_split@latest
     inputs:
-      data_dir: ${{inputs.data_dir}}
-    outputs:
-      train_dir: ${{job.outputs.train_dir}}
-      test_dir: ${{job.outputs.test_dir}}
+      data_dir: ${{parent.inputs.data_dir}}
+    # outputs:
+    #   processed_data_dir: ${{parent.jobs.processed_data_dir.outputs}}
 
   # preprocess:
   #   type: command

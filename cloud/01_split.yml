@@ -7,9 +7,9 @@ inputs:
   data_dir:
     type: uri_folder
 
-# outputs:
-#   data_dir:
-#     type: uri_folder
+outputs:
+  processed_data_dir:
+    type: uri_folder
 
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
@@ -17,4 +17,4 @@ environment:
 
 code: ../src
 command: >-
-  python 01_split.py --data_dir ${{inputs.data_dir}} 
+  python 01_split.py --data_dir ${{inputs.data_dir}} --processed_data_dir ${{outputs.processed_data_dir}}
