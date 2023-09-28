@@ -1,4 +1,4 @@
-# azure_ml_sandbox
+# Predicting salary (NLP)
 
 This projects shows how to use Azure ML to train a model and deploy it as a web service.
 
@@ -73,6 +73,5 @@ Clean up the endpoint, to avoid getting charged.
 az ml online-endpoint delete --name endpoint-pipeline-cli -y
 ```
 
-```
 
 
