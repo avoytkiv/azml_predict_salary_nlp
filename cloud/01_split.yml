@@ -1,22 +1,42 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
 name: component_pipeline_cli_split
-version: 3
+display_name: Split
+description: Split the data into train, validation and test sets
+version: 4.3.3
 type: command
 
 inputs:
-  data_dir:
-    type: uri_folder
-
+  raw_data:
+      type: uri_file
+      mode: download
+  random_state:
+    type: integer
+    default: 42
+  test_train_ratio:
+    type: number
+    default: 0.2
+  
 outputs:
-  processed_data_dir:
-    type: uri_folder
+  train_data:
+    type: uri_file
+    mode: rw_mount
+  validation_data:
+    type: uri_file
+    mode: rw_mount
+  test_data:
+    type: uri_file
+    mode: rw_mount
 
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
   conda_file: conda.yml
 
-code: ../src/01_split.py
+code: ../src/split-src/
 command: >-
-  python 01_split.py 
-  --data_dir ${{inputs.data_dir}} 
-  --processed_data_dir ${{outputs.processed_data_dir}}
+  python split.py 
+  --random_state ${{inputs.random_state}}
+  --test_train_ratio ${{inputs.test_train_ratio}}
+  --raw_data ${{inputs.raw_data}} 
+  --train_data ${{outputs.train_data}}
+  --validation_data ${{outputs.validation_data}}
+  --test_data ${{outputs.test_data}}

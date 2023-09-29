@@ -13,6 +13,10 @@ conda activate azure_ml_sandbox
 
 ## Training and deploying in cloud
 
+Upload the data to Azure ML Datastore. In my case, I'm using a single file, so the `type=uri-file` is used in `data.yml`.
+
+
+
 Create compute cluster:
 
 ```bash
@@ -115,6 +119,8 @@ az ml -h
 
 - [Azure ML CLI - Manage inputs and outputs of pipeline](https://learn.microsoft.com/en-us/azure/machine-learning/how-to-manage-inputs-outputs-pipeline?view=azureml-api-2&tabs=cli)
 - [Azure GitHub - CLI - jobs](https://github.com/Azure/azureml-examples/tree/main/cli/jobs)
+- [Azure ML - Data concepts](https://learn.microsoft.com/en-us/azure/machine-learning/concept-data?view=azureml-api-2&tabs=uri-file-example%2Ccli-data-create-example#examples)
+
 
 
 

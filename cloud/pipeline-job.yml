@@ -1,53 +1,52 @@
 $schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
 type: pipeline
-experiment_name: job-salary-prediction
+display_name: job-salary-prediction
+experiment_name: basic-nn-architecture
 description: A pipeline job to split-preprocess-train-test 
-
-
-inputs:
-  data_dir:
-    path: azureml:Train-Data@latest
-    type: uri_folder
-
-outputs:
-  model_dir:
-    type: mlflow_model
-  pipeline_job_split_data:
-    mode: upload
-
 
 settings:
     default_compute: azureml:cluster-cpu
-
 
 jobs:
   split:
     type: command
     component: azureml:component_pipeline_cli_split@latest
     inputs:
-      data_dir: ${{parent.inputs.data_dir}}
-    # outputs:
-    #   processed_data_dir: ${{parent.jobs.processed_data_dir.outputs}}
+      raw_data:
+        type: uri_file
+        path: azureml:raw_data@latest
+        mode: download
+    outputs:
+      train_data:
+        type: uri_file
+        mode: rw_mount
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/train.csv
+      validation_data:
+        type: uri_file
+        mode: rw_mount
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/validation.csv
+      test_data:
+        type: uri_file
+        mode: rw_mount
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/test.csv
 
-  # preprocess:
-  #   type: command
-  #   component: azureml:component_pipeline_cli_preprocess@latest
-  #   inputs:
-  #     data_dir: ${{parent.jobs.split.outputs.train_dir}}
-  #   outputs:
-  #     data_dir: ${{job.outputs.data_dir}}
-      
-  # train:
-  #   type: command
-  #   component: azureml:component_pipeline_cli_train@latest
-  #   inputs:
-  #     data_dir: ${{parent.inputs.data_dir}}
-  #   outputs:
-  #     model_dir: ${{parent.outputs.model_dir}}
-
-  # test:
-  #   type: command
-  #   component: azureml:component_pipeline_cli_test@latest
-  #   inputs:
-  #     data_dir: ${{parent.inputs.data_dir}}
-  #     model_dir: ${{parent.jobs.train.outputs.model_dir}}
+  preprocess:
+    type: command
+    component: azureml:component_pipeline_cli_preprocess@latest
+    inputs:
+      train_data: ${{parent.jobs.split.outputs.train_data}}
+      validation_data: ${{parent.jobs.split.outputs.validation_data}}
+      test_data: ${{parent.jobs.split.outputs.test_data}}
+    outputs:
+      batches_train: 
+        type: uri_folder
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/train
+        mode: rw_mount
+      batches_validation:
+        type: uri_folder
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/validation
+        mode: rw_mount
+      batches_test:
+        type: uri_folder
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/test
+        mode: rw_mount

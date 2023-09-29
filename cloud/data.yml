@@ -1,4 +1,5 @@
 $schema: https://azuremlschemas.azureedge.net/latest/data.schema.json
-name: Train-Data
+type: uri_file
+name: raw_data
 description: The main dataset consists of a large number of rows representing individual job ads, and a series of fields about each job ad
-path: ../data/
+path: ../data/raw/Train_rev1.csv.tar.gz

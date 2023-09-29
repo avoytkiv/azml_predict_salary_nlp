@@ -1,46 +1,22 @@
-import sys
+
 import argparse
 import logging
 from pathlib import Path
-
 import shutil
 import os
 import mlflow
 import torch
 from torch import nn
 import torch.nn.functional as F
-import matplotlib.pyplot as plt
 
-src_path = Path(__file__).parent.parent.resolve()
-sys.path.append(str(src_path))
-
-from common import DATA_DIR, MODEL_DIR, TARGET_COLUMN, EPOCHS
-from src.utils.logs import get_logger
-from src.utils.train_utils import SalaryPredictor, BatchLoader, extract_feature_sizes, evaluate
+from train_utils import SalaryPredictor, BatchLoader, evaluate, get_logger
 
 
-# def save_model(model_dir: str, model: nn.Module) -> None:
-#     """
-#     Saves the trained model.
-#     """
-#     input_schema = Schema(
-#         [ColSpec(type="double", name=f"col_{i}") for i in range(784)])
-#     output_schema = Schema([TensorSpec(np.dtype(np.float32), (-1, 10))])
-#     signature = ModelSignature(inputs=input_schema, outputs=output_schema)
+TARGET_COLUMN = "Log1pSalary"
 
-#     code_paths = ["neural_network.py", "utils_train_nn.py"]
-#     full_code_paths = [
-#         Path(Path(__file__).parent, code_path) for code_path in code_paths
-#     ]
-#     shutil.rmtree(model_dir, ignore_errors=True)
-#     logging.info("Saving model to %s", model_dir)
-#     mlflow.pytorch.save_model(pytorch_model=model,
-#                               path=model_dir,
-#                               code_paths=full_code_paths,
-#                               signature=signature)
-
-def train(data_dir: str,  model_dir: str, device: str, epochs=EPOCHS) -> None:
+def train(data_dir: str,  model_dir: str, epochs: int, device: str) -> None:
     logger = get_logger("TRAIN", log_level="INFO")
+    src_path = Path.cwd().parent
 
     data_dir = src_path / Path(data_dir)
     model_dir = src_path / Path(model_dir)
@@ -85,15 +61,6 @@ def train(data_dir: str,  model_dir: str, device: str, epochs=EPOCHS) -> None:
         logger.info(f"Epoch {epoch + 1}/{epochs} | Train Loss: {train_loss:.4f} | Validation Loss: {val_loss:.4f}")
 
     
-    
-    logger.info("Plotting losses")
-    plt.plot(train_losses, label='Train Loss')
-    plt.plot(val_losses, label='Validation Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.legend()
-    plot_name = plots_dir / Path("losses.png")
-    plt.savefig(plot_name)
 
     mlflow.end_run()
     with mlflow.start_run() as run:
@@ -112,8 +79,9 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir", dest="data_dir", default=DATA_DIR)
-    parser.add_argument("--model_dir", dest="model_dir", default=MODEL_DIR)
+    parser.add_argument("--data_dir", dest="data_dir", default="data/")
+    parser.add_argument("--model_dir", dest="model_dir", default="data/processed/")
+    parser.add_argument("--epochs", dest="epochs", default=5, type=int)
     args = parser.parse_args()
     logging.info("input parameters: %s", vars(args))
 
