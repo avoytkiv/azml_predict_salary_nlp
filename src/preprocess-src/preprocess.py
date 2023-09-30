@@ -1,13 +1,12 @@
 import os
 import argparse
 import logging
-from pathlib import Path
-import json
 import numpy as np
 import pandas as pd
 from collections import Counter
 import torch
 import mlflow
+import nltk
 
 from preprocess_utils import preprocess_text, categorical_vectorizer_func, DataFeaturizer, get_logger
 
@@ -23,9 +22,10 @@ def preprocess(batch_size: int, train_data: str, validation_data: str, test_data
     output_batches_paths = [batches_train, batches_validation, batches_test]
     data_types = ["train", "validation", "test"]
 
+    nltk.download('stopwords')
+    nltk.download('wordnet')
+
     for data_path, batches_path, data_type in zip(input_data_paths, output_batches_paths, data_types):
-        if not os.path.exists():
-            os.makedirs(batches_path)
 
         logger.info("Loading data from %s", data_path)
         data = pd.read_csv(data_path, index_col=None)
@@ -94,7 +94,7 @@ mlflow.end_run()
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_size", dest="batch_size", default=512, type=int)
+    parser.add_argument("--batch_size", dest="batch_size", type=int, default=256)
     parser.add_argument("--train_data", dest="train_data", type=str, default="data/train/train.csv", help="path to train data")
     parser.add_argument("--validation_data", dest="validation_data", type=str, default="data/validation/validation.csv", help="path to validation data")
     parser.add_argument("--test_data", dest="test_data", type=str, default="data/test/test.csv", help="path to test data")

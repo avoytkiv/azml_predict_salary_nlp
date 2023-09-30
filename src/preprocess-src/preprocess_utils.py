@@ -1,7 +1,5 @@
-import json
 import numpy as np
 import pandas as pd
-import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import WordPunctTokenizer
 from nltk.stem import WordNetLemmatizer
@@ -56,8 +54,6 @@ def get_logger(
 
 def preprocess_text(text: str) -> List[str]:
     """ This function takes a text and returns a list of tokens"""
-    nltk.download('stopwords')
-    nltk.download('wordnet')
 
     stop_words = set(stopwords.words('english'))
     lemmatizer = WordNetLemmatizer()
