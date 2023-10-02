@@ -2,7 +2,7 @@ $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.jso
 name: component_pipeline_cli_preprocess
 display_name: Preprocess
 description: Preprocess the data
-version: 3.1.9
+version: 3.2.6
 type: command
 
 inputs:
@@ -20,13 +20,13 @@ inputs:
     mode: rw_mount
   
 outputs:
-  batches_train:
+  train_batches:
     type: uri_folder
     mode: rw_mount
-  batches_validation:
+  validation_batches:
     type: uri_folder
     mode: rw_mount
-  batches_test:
+  test_batches:
     type: uri_folder
     mode: rw_mount
   features_dim:
@@ -37,15 +37,15 @@ environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
   conda_file: conda.yml
 
-code: ../src/preprocess-src/
+code: ../src/
 command: >-
   python preprocess.py 
   --batch_size ${{inputs.batch_size}}
   --train_data ${{inputs.train_data}}
   --validation_data ${{inputs.validation_data}}
   --test_data ${{inputs.test_data}}
-  --batches_train ${{outputs.batches_train}}
-  --batches_validation ${{outputs.batches_validation}}
-  --batches_test ${{outputs.batches_test}}
+  --train_batches ${{outputs.train_batches}}
+  --validation_batches ${{outputs.validation_batches}}
+  --test_batches ${{outputs.test_batches}}
   --features_dim ${{outputs.features_dim}}
   

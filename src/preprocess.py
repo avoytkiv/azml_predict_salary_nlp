@@ -8,7 +8,8 @@ import torch
 import mlflow
 import nltk
 
-from preprocess_utils import preprocess_text, categorical_vectorizer_func, DataFeaturizer, get_logger
+from utils.preprocess_utils import preprocess_text, categorical_vectorizer_func, DataFeaturizer
+from utils.logs import get_logger
 
 CATEGORICAL_COLUMNS = ["Category", "ContractType", "ContractTime"]
     
@@ -17,9 +18,9 @@ def preprocess(batch_size: int,
                validation_data: str, 
                test_data: str, 
                device: str, 
-               batches_train: str, 
-               batches_validation: str, 
-               batches_test: str,
+               train_batches: str, 
+               validation_batches: str, 
+               test_batches: str,
                features_dim: str) -> None:
     # Start Logging
     mlflow.start_run()
@@ -27,7 +28,7 @@ def preprocess(batch_size: int,
     logger = get_logger("DATA PROCESS", log_level="INFO")
     
     input_data_paths = [train_data, validation_data, test_data]
-    output_batches_paths = [batches_train, batches_validation, batches_test]
+    output_batches_paths = [train_batches, validation_batches, test_batches]
     data_types = ["train", "validation", "test"]
 
     nltk.download('stopwords')
@@ -114,9 +115,9 @@ def main() -> None:
     parser.add_argument("--train_data", dest="train_data", type=str, default="data/train/train.csv", help="path to train data")
     parser.add_argument("--validation_data", dest="validation_data", type=str, default="data/validation/validation.csv", help="path to validation data")
     parser.add_argument("--test_data", dest="test_data", type=str, default="data/test/test.csv", help="path to test data")
-    parser.add_argument("--batches_train", dest="batches_train", type=str, default="data/batches/train/")
-    parser.add_argument("--batches_validation", dest="batches_validation", type=str, default="data/batches/validation/")
-    parser.add_argument("--batches_test", dest="batches_test", type=str, default="data/batches/test/")
+    parser.add_argument("--train_batches", dest="train_batches", type=str, default="data/batches/train/")
+    parser.add_argument("--validation_batches", dest="validation_batches", type=str, default="data/batches/validation/")
+    parser.add_argument("--test_batches", dest="test_batches", type=str, default="data/batches/test/")
     parser.add_argument("--features_dim", dest="features_dim", type=str, default="data/features_dim.csv", help="path to features_dim.csv")
 
 

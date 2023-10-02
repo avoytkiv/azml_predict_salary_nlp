@@ -2,7 +2,7 @@ $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.jso
 name: component_pipeline_cli_split
 display_name: Split
 description: Split the data into train, validation and test sets
-version: 4.3.3
+version: 4.3.7
 type: command
 
 inputs:
@@ -31,7 +31,7 @@ environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
   conda_file: conda.yml
 
-code: ../src/split-src/
+code: ../src/
 command: >-
   python split.py 
   --random_state ${{inputs.random_state}}

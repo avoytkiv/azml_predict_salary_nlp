@@ -28,6 +28,24 @@ outputs:
         mode: rw_mount
 ```
 
+- Where is the model saved? I don't see it in the datastore. Expectation was that it will be saved in the datastore when the mode is `upload`.
+
+```yml
+train:
+
+...
+
+  outputs:
+        model_dir:
+          type: mlflow_model
+          mode: upload
+```
+
+- Running code locally vs running code in the cloud. 
+
+- When running experiments in cloud is there any caching involved? If I run the same experiment with the same parameters, will it run from scratch or will it use the cached results? My test stage was failing and when I resubmitted job it was running only the test stage. It's not clear to me if it was using cached results or not. But it's good. Probably, it's checking if the version of the component is the same as the previous one.
+
+
 **End-to-end ML pipeline in Azure ML and GitHub Actions:**
 
 - Convert notebook to scripts.

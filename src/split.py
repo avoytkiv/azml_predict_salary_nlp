@@ -7,7 +7,8 @@ import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from split_utils import get_logger
+# from split_utils import get_logger
+from utils.logs import get_logger
 
 def split_data(raw_data: str, train_data: str, validation_data: str, test_data: str, random_state: int, test_train_ratio: float) -> None:
     # Start Logging

@@ -2,17 +2,17 @@ $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.jso
 name: component_pipeline_cli_train
 display_name: Train
 description: Train the model
-version: 1.0.0
+version: 1.0.6
 type: command
 
 inputs:
   epochs:
     type: integer
     default: 5
-  batches_train:
+  train_batches:
     type: uri_folder
     mode: ro_mount
-  batches_validation:
+  validation_batches:
     type: uri_folder
     mode: ro_mount
   features_dim:
@@ -28,11 +28,11 @@ environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
   conda_file: conda.yml
 
-code: ../src/train-src/
+code: ../src/
 command: >-
   python train.py 
   --epochs ${{inputs.epochs}}
-  --batches_train ${{inputs.batches_train}}
-  --batches_validation ${{inputs.batches_validation}}
+  --train_batches ${{inputs.train_batches}}
+  --validation_batches ${{inputs.validation_batches}}
   --features_dim ${{inputs.features_dim}}
   --model_dir ${{outputs.model_dir}}

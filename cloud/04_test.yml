@@ -1,22 +1,24 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
-name: component_pipeline_cli_train
-version: 3
+name: component_pipeline_cli_test
+display_name: Test
+description: Test the model
+version: 1.1.0
 type: command
 
 inputs:
-  data_dir:
+  test_batches:
     type: uri_folder
+    mode: ro_mount
   model_dir:
     type: mlflow_model
+    mode: download
 
-outputs:
-  plots_dir:
-    type: uri_directory
-  
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
   conda_file: conda.yml
 
-code: ../src
+code: ../src/
 command: >-
-  python test.py --data_dir ${{inputs.data_dir}} --model_dir ${{inputs.model_dir}} --plots_dir ${{outputs.plots_dir}}
+  python test.py 
+  --test_batches ${{inputs.test_batches}}
+  --model_dir ${{inputs.model_dir}}

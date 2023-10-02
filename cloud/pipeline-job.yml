@@ -38,15 +38,15 @@ jobs:
       validation_data: ${{parent.jobs.split.outputs.validation_data}}
       test_data: ${{parent.jobs.split.outputs.test_data}}
     outputs:
-      batches_train: 
+      train_batches: 
         type: uri_folder
         path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/train
         mode: rw_mount
-      batches_validation:
+      validation_batches:
         type: uri_folder
         path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/validation
         mode: rw_mount
-      batches_test:
+      test_batches:
         type: uri_folder
         path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/test
         mode: rw_mount
@@ -59,10 +59,18 @@ jobs:
     type: command
     component: azureml:component_pipeline_cli_train@latest
     inputs:
-      batches_train: ${{parent.jobs.preprocess.outputs.batches_train}}
-      batches_validation: ${{parent.jobs.preprocess.outputs.batches_validation}}
+      epochs: 5
+      train_batches: ${{parent.jobs.preprocess.outputs.train_batches}}
+      validation_batches: ${{parent.jobs.preprocess.outputs.validation_batches}}
       features_dim: ${{parent.jobs.preprocess.outputs.features_dim}}
     outputs:
       model_dir:
         type: mlflow_model
         mode: upload
+
+  test:
+    type: command
+    component: azureml:component_pipeline_cli_test@latest
+    inputs:
+      model_dir: ${{parent.jobs.train.outputs.model_dir}}
+      test_batches: ${{parent.jobs.preprocess.outputs.test_batches}}
