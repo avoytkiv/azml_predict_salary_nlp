@@ -1,22 +1,38 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.json
 name: component_pipeline_cli_train
-version: 3
+display_name: Train
+description: Train the model
+version: 1.0.0
 type: command
 
 inputs:
-  data_dir:
+  epochs:
+    type: integer
+    default: 5
+  batches_train:
     type: uri_folder
+    mode: ro_mount
+  batches_validation:
+    type: uri_folder
+    mode: ro_mount
+  features_dim:
+    type: uri_file
+    mode: ro_mount
 
 outputs:
   model_dir:
     type: mlflow_model
-  plots_dir:
-    type: uri_folder
+    mode: upload
 
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
   conda_file: conda.yml
 
-code: ../src
+code: ../src/train-src/
 command: >-
-  python train.py --data_dir ${{inputs.data_dir}} --model_dir ${{outputs.model_dir}} --plots_dir ${{outputs.plots_dir}}
+  python train.py 
+  --epochs ${{inputs.epochs}}
+  --batches_train ${{inputs.batches_train}}
+  --batches_validation ${{inputs.batches_validation}}
+  --features_dim ${{inputs.features_dim}}
+  --model_dir ${{outputs.model_dir}}

@@ -2,7 +2,7 @@ $schema: https://azuremlschemas.azureedge.net/latest/commandComponent.schema.jso
 name: component_pipeline_cli_preprocess
 display_name: Preprocess
 description: Preprocess the data
-version: 3.1.7
+version: 3.1.9
 type: command
 
 inputs:
@@ -29,6 +29,9 @@ outputs:
   batches_test:
     type: uri_folder
     mode: rw_mount
+  features_dim:
+    type: uri_file
+    mode: rw_mount
   
 environment:
   image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest
@@ -44,4 +47,5 @@ command: >-
   --batches_train ${{outputs.batches_train}}
   --batches_validation ${{outputs.batches_validation}}
   --batches_test ${{outputs.batches_test}}
+  --features_dim ${{outputs.features_dim}}
   

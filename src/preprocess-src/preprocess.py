@@ -12,7 +12,15 @@ from preprocess_utils import preprocess_text, categorical_vectorizer_func, DataF
 
 CATEGORICAL_COLUMNS = ["Category", "ContractType", "ContractTime"]
     
-def preprocess(batch_size: int, train_data: str, validation_data: str, test_data: str, device: str, batches_train: str, batches_validation: str, batches_test: str) -> None:
+def preprocess(batch_size: int, 
+               train_data: str, 
+               validation_data: str, 
+               test_data: str, 
+               device: str, 
+               batches_train: str, 
+               batches_validation: str, 
+               batches_test: str,
+               features_dim: str) -> None:
     # Start Logging
     mlflow.start_run()
 
@@ -52,6 +60,7 @@ def preprocess(batch_size: int, train_data: str, validation_data: str, test_data
         categorical_features = categorical_vectorizer.transform(data[CATEGORICAL_COLUMNS].apply(dict, axis=1))
         logger.info("Number of categorical features %s", len(categorical_vectorizer.vocabulary_))
         mlflow.log_metric("categorical_features", len(categorical_vectorizer.vocabulary_))
+        n_cat_features = len(categorical_vectorizer.vocabulary_)
 
         if data_type == "train":
             logger.info("Build a vocabulary on train data")
@@ -73,9 +82,16 @@ def preprocess(batch_size: int, train_data: str, validation_data: str, test_data
             tokens = [UNK, PAD] + tokens
             logger.info("Number of tokens: %s", len(tokens))
             mlflow.log_metric("tokens", len(tokens))
+            n_tokens = len(tokens)
 
             logger.info("Build an inverse token index")
             vocab = {t: i for i, t in enumerate(tokens)}
+        
+        # Save number of tokens and categorical features to new dataframe
+        logger.info("Save number of tokens and categorical features to new dataframe")
+        df = pd.DataFrame({"n_tokens": [n_tokens], "n_cat_features": [n_cat_features]})
+        df.to_csv(features_dim, index=False)
+
 
         logger.info("Map text lines into neural network inputs")
         data.index = range(len(data))
@@ -101,6 +117,7 @@ def main() -> None:
     parser.add_argument("--batches_train", dest="batches_train", type=str, default="data/batches/train/")
     parser.add_argument("--batches_validation", dest="batches_validation", type=str, default="data/batches/validation/")
     parser.add_argument("--batches_test", dest="batches_test", type=str, default="data/batches/test/")
+    parser.add_argument("--features_dim", dest="features_dim", type=str, default="data/features_dim.csv", help="path to features_dim.csv")
 
 
     args = parser.parse_args()
