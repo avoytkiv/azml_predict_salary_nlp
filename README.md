@@ -13,7 +13,7 @@ conda activate azure_ml_sandbox
 
 ## Training and deploying in cloud
 
-<img width="60%" alt="Screenshot 2023-10-02 at 15 20 37" src="https://github.com/avoytkiv/az_ml_predict_salary_nlp/assets/74664634/dc615a70-dcd0-46b2-bd9f-04146004731a">
+<img width="100%" alt="Screenshot 2023-10-02 at 15 20 37" src="https://github.com/avoytkiv/az_ml_predict_salary_nlp/assets/74664634/dc615a70-dcd0-46b2-bd9f-04146004731a">
 
 Upload the data to Azure ML Datastore. In my case, I'm using a single file, so the `type=uri-file` is used in `data.yml`.
 
