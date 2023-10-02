@@ -12,6 +12,21 @@ Another thing worse mentioning is how to define parameters for ML pipeline. In D
 
 In general, I like how everything is organized in Azure. There are three ways how you can interact with Azure ML: Studio, CLI, SDK.
 
+**Confusions:**
+
+- I defined my `preprocess` stage in pipeline to produce outputs as folders. Expectation was that compute cluster will create folders and save files into folders. Instead, I see files with the names without extensions.
+
+- Another thing is that `mode: rw_mount` means that the compute cluster will mount the datastore and save files into it. But don't download the files from compute cluster to datastore. I thought you need to use `mode: download`.
+
+- One more confusion is how to define parameters. If I want to change `batch_size`, I have to change in component definition and in pipeline definition. Is there a way to see all parameters in one place for the whole job? Probably, by redefining them in pipeline it overwrites the component parameters.
+
+```yaml
+outputs:
+      batches_train: 
+        type: uri_folder
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/train
+        mode: rw_mount
+```
 
 **End-to-end ML pipeline in Azure ML and GitHub Actions:**
 
@@ -33,3 +48,60 @@ In general, I like how everything is organized in Azure. There are three ways ho
 - Deploy a model to a managed endpoint.
 - Trigger model deployment with GitHub Actions.
 - Test the deployed model.
+
+
+```yaml
+$schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
+type: pipeline
+display_name: job-salary-prediction
+experiment_name: basic-nn-architecture
+description: A pipeline job to split-preprocess-train-test 
+
+settings:
+    default_compute: azureml:cluster-cpu
+
+jobs:
+  split:
+    type: command
+    component: azureml:component_pipeline_cli_split@latest
+    inputs:
+      raw_data:
+        type: uri_file
+        path: azureml:raw_data@latest
+        mode: download
+    outputs:
+      train_data:
+        type: uri_file
+        mode: rw_mount
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/train.csv
+      validation_data:
+        type: uri_file
+        mode: rw_mount
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/validation.csv
+      test_data:
+        type: uri_file
+        mode: rw_mount
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/test.csv
+
+  preprocess:
+    type: command
+    component: azureml:component_pipeline_cli_preprocess@latest
+    inputs:
+      train_data: ${{parent.jobs.split.outputs.train_data}}
+      validation_data: ${{parent.jobs.split.outputs.validation_data}}
+      test_data: ${{parent.jobs.split.outputs.test_data}}
+    outputs:
+      batches_train: 
+        type: uri_folder
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/train
+        mode: rw_mount
+      batches_validation:
+        type: uri_folder
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/validation
+        mode: rw_mount
+      batches_test:
+        type: uri_folder
+        path: azureml://subscriptions/a8c5d49d-e0aa-4576-97cc-fa6b18ce0f6a/resourcegroups/rg001/workspaces/WS001/datastores/workspaceblobstore/paths/LocalUpload/73375df799e563845861e11ed586aa7d/test
+        mode: rw_mount
+
+```
