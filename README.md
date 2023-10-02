@@ -13,6 +13,8 @@ conda activate azure_ml_sandbox
 
 ## Training and deploying in cloud
 
+<img width="60%" alt="Screenshot 2023-10-02 at 15 20 37" src="https://github.com/avoytkiv/az_ml_predict_salary_nlp/assets/74664634/dc615a70-dcd0-46b2-bd9f-04146004731a">
+
 Upload the data to Azure ML Datastore. In my case, I'm using a single file, so the `type=uri-file` is used in `data.yml`.
 
 
@@ -56,7 +58,10 @@ Create the Azure ML model from the output.
 
 ```bash
 az ml model create --name model-pipeline-cli --version 1 --path "azureml://jobs/$run_id/outputs/model_dir" --type mlflow_model
-```
+```   
+
+<img width="100%" alt="Screenshot 2023-10-02 at 15 41 21" src="https://github.com/avoytkiv/az_ml_predict_salary_nlp/assets/74664634/40852c97-5dad-4781-b7cd-30e844f060e7">   
+
 
 Create the endpoint
 
