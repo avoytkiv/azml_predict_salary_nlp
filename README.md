@@ -1,5 +1,8 @@
 # Predicting salary (NLP)
 
+<img width="60%" alt="Screenshot 2023-10-02 at 15 20 37" src="https://github.com/avoytkiv/az_ml_predict_salary_nlp/assets/74664634/dc615a70-dcd0-46b2-bd9f-04146004731a">
+
+
 This projects shows how to use Azure ML to train a model and deploy it as a web service.
 
 The data science workflow is as follows:
