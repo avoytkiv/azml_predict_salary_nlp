@@ -28,7 +28,10 @@ Data science:
 - [x] Train the model.
 - [x] Evaluate the model.
 
-**Moving to Azure ML:**
+![68747470733a2f2f6769746875622e636f6d2f79616e646578646174617363686f6f6c2f6e6c705f636f757273652f7261772f6d61737465722f7265736f75726365732f77325f636f6e765f617263682e706e67](https://github.com/avoytkiv/az_ml_predict_salary_nlp/assets/74664634/42074d3e-9f5e-4b81-8a56-4c8b8f2ff641)
+
+
+Moving to Azure ML:
 
 - [x] Create a resource group.
 - [x] Create a workspace.
