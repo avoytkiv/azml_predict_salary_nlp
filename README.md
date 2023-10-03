@@ -1,8 +1,43 @@
 # Predicting salary (NLP)
 
-This projects shows how to use Azure ML to train a model and deploy it as a web service.
+This projects shows how to use Azure ML to train a model and deploy it as a web service. 
+Data is mostly unstructured, so we'll use NLP to extract features from text columns.
+The goal is to predict the salary based on the job description, title etc.
 
-The data science workflow is as follows:
+**High-level steps:**
+
+- Start with jupyter notebook as a prototype.
+- Convert notebook to scripts.
+- Create all necessary Azure resources (resource group, workspace, compute cluster, etc.)
+- Create and run the pipeline.
+- Register the model.
+- Create the endpoint.
+- Test the endpoint.
+
+**Low-level steps:**
+
+Data science:
+
+- [x] Split the data into train, validation, and test sets. This is the first to avoid data leakage.
+- [x] Featurize categorical columns.
+  - [x] One-hot encoding for categorical columns.
+  - [x] Tokenize and vectorize text columns.
+- [x] Transform the data into tensors.
+- [x] Create a simple neural network.
+  - [x] Combine vectorized (one-hot encoded) and featurized text columns (bag of words).
+- [x] Train the model.
+- [x] Evaluate the model.
+
+**Moving to Azure ML:**
+
+- [x] Create a resource group.
+- [x] Create a workspace.
+- [x] Create a compute cluster.
+- [x] Load the data to Azure ML Datastore.
+- [x] Create the components.
+- [x] Create and run the pipeline.
+
+**Setup the environment**
 
 Install and activate the conda environment by executing the following commands:
 

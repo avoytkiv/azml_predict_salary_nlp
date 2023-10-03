@@ -1,4 +1,4 @@
-Converting from Jupyter Notebooks to python scripts was relatively seamless.
+# My first ML pipeline in Azure ML
 
 However, processing data into format consumable by the model was a bit more challenging. I had to combine categorical features encoded by one-hot encoding with processed text data. The trick was that I had to split up data into train, validation and test first to avoid data leakage. Then seperately process each of the splits. I but I managed to do it through writing classes and functions that I could reuse. For future projects, I would seperate data processing pipeline and model training pipeline into two seperate pipelines. 
 
