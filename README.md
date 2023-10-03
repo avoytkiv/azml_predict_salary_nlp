@@ -7,7 +7,10 @@ The goal is to predict the salary based on the job description, title etc.
 **High-level steps:**
 
 - Start with jupyter notebook as a prototype.
-- Convert notebook to scripts.
+- Refactor notebook to scripts.
+  - Clean non-essential code.
+  - Use functions.
+  - Add logging.
 - Create all necessary Azure resources (resource group, workspace, compute cluster, etc.)
 - Create and run the pipeline.
 - Register the model.
