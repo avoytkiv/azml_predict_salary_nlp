@@ -1,4 +1,4 @@
-# Predicting job salary using end-to-end Neural Network model on Azure ML (NLP)
+# Predicting job salary using Neural Network model on Azure ML (NLP)
 
 This projects shows how to use Azure ML to train a model and deploy it as a web service. 
 Data is mostly unstructured, so we'll use NLP to extract features from text columns.
